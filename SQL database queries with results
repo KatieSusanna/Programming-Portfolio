@@ -1,0 +1,98 @@
+-- QUERIES 
+-- query to get the name of the staff members that worked on a boat in order of who most recently worked on it based on customers last name
+/*this could be used if the customer had an issue with their boat where the boatyard is at fault - they would be able to look up
+who last worked on the boat and ask them what happened */
+select staff.staff_fname, staff.staff_lname from
+customer join boat_owner on customer.customer_id = boat_owner.customer_id 
+join boat on boat_owner.boat_id = boat.boat_id
+join service on boat.boat_id = service.boat_id
+join service_details on service.service_id = service_details.service_id
+join staff on service_details.staff_id = staff.staff_id
+where customer.customer_lname = 'Sollime'
+order by service_details.date_completed desc;
+/* output for customer_lname = 'Sollime':
+
+staff_fname | staff_lname
+-------------+-------------
+ Wilton      | Leat
+ Brittany    | Jankowski
+ Morie       | Macken
+ Reine       | Grinter
+(4 rows) 
+*/
+
+--select the manager contact details of a boatyard where a particular boat is stored 
+/* this could be used if a customer had an issue that only a manager could solve - staff could search up the email for the manager of
+the boatyard where the customers boat is stored and give it to the customer so they can contact the manager */
+select staff.staff_fname, staff.staff_lname, staff.work_email from 
+boat join boatyard on boat.boatyard_id = boatyard.boatyard_id
+join staff on boatyard.boatyard_id = staff.boatyard_id
+join staff_role on staff.staff_id = staff_role.staff_id
+where staff_role.role_id = 1 and boat.boat_name = 'American Eelgrass';
+/* output for boat_name = 'American Eelgrass':
+
+ staff_fname | staff_lname |    work_email
+-------------+-------------+------------------
+ Kira        | Banham      | kbanhamd@fda.gov
+(1 row)
+*/
+
+--select all the service tasks for a boat and the completion date to see if all service tasks have been complete
+/* used check if a particular boat is up to date on services - checks to make sure that services are marked as complete or incomplete correctly*/
+select service.service_id, service.completed, service_tasks.task_name, service_details.date_completed, service.date_scheduled from
+boat join service on boat.boat_id = service.boat_id
+join service_details on service.service_id = service_details.service_id 
+join service_tasks on service_details.task_id = service_tasks.task_id
+where boat.boat_id = 10;
+/* output for boat_id = 10:
+
+ service_id | completed |     task_name      | date_completed | date_scheduled
+------------+-----------+--------------------+----------------+----------------
+         55 | t         | Fuel filter change | 2022-02-01     | 2022-10-15
+         55 | t         | Safety check       | 2022-11-05     | 2022-10-15
+(2 rows)
+
+ */ 
+
+-- select all the service tasks that have been completed by a member of staff based on their id and the boats they were completed on and when they were completed
+/* if a member of staff was found to be not doing thier job properly, the boatyard would need to know which boats that member of staff worked on, if there
+is no date of completion the staff member will not have worked on the boat yet, they were just scheduled to */
+select boat.boat_name, boat.boat_id, service_tasks.task_name, service_details.date_completed from
+boat join service on boat.boat_id = service.boat_id 
+join service_details on service.service_id = service_details.service_id 
+join service_tasks on service_details.task_id = service_tasks.task_id
+where service_details.staff_id = 10 and service_details.date_completed is not null;
+/* output for service_details.staff_id = 10:
+
+   boat_name    | boat_id |        task_name        | date_completed
+-----------------+---------+-------------------------+----------------
+ Desert Draba    |      29 | Fibre glass maintenence | 2022-06-05
+ Nevada Jointfir |      25 | Oil change              | 2022-02-01
+
+*/ 
+
+--list all the boats and all services if the boat is stored at the boatyard to check which boats have a service at the yard
+/* gives a genral overview of the services that are going on at a particular boatyard and shows the boats that do not have a service scheduled*/
+select boat.boat_name, boat.boat_id, service.date_scheduled from
+boat left join service on boat.boat_id = service.boat_id 
+where boat.status_id = 1 and boat.boatyard_id = 1
+order by service.date_scheduled asc;
+
+/*  output for boatyard_id = 1:
+
+      boat_name      | boat_id | date_scheduled 
+---------------------+---------+----------------
+ Common Yarrow       |      15 | 2022-01-30
+ American Holly      |      38 | 2022-02-01
+ Christmas Mistletoe |      11 | 2022-02-08
+ Christmas Mistletoe |      11 | 2022-08-14
+ Christmas Mistletoe |      11 | 2022-10-08
+ Christmas Mistletoe |      11 | 2023-01-09
+ Caltrop             |      23 | 2023-08-04
+ Common Yarrow       |      15 | 2023-11-12
+ Leptosiphon         |      30 |
+ Nevius' Garlic      |       3 |
+ Candle Snuffer Moss |       7 |
+(11 rows)
+
+*/
