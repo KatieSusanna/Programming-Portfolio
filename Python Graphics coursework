@@ -1,0 +1,287 @@
+from Graphics import *
+
+def Patch1 (win, topLeftX, topLeftY, colour, graphics, graphicsType):
+    
+    outline = colour
+    colourBlock(win, topLeftX, topLeftY, colour, outline, graphics, graphicsType)
+
+    tly = topLeftY
+    bry = topLeftY+20
+    for a in range(3):
+        tlX = topLeftX+20  
+        brx = topLeftX+40
+        for b in range(2):
+            square = Rectangle(Point(tlX, tly), Point(brx, bry))
+            square.draw(win)
+            square.setFill("white")
+            square.setOutline("white")
+            tlX = tlX + 40
+            brx = brx + 40
+            graphics.append(square)
+            graphicsType.append("Square")
+        tly += 40
+        bry += 40
+
+    topY = topLeftY
+    leftY = topLeftY + 10
+    bottomY = topLeftY + 20
+    rightY = topLeftY + 10
+
+    for a in range(3):
+        topX = topLeftX + 30
+        leftX = topLeftX+ 40
+        bottomX =topLeftX + 30
+        rightX = topLeftX+20
+        for b in range(2):
+            diamond = Polygon(Point(topX, topY), Point(leftX, leftY), Point(bottomX, bottomY), Point(rightX, rightY))
+            diamond.draw(win)
+            diamond.setFill(colour)
+            diamond.setOutline(colour)
+            topX += 40
+            leftX += 40
+            bottomX += 40
+            rightX += 40
+            graphics.append(diamond)
+            graphicsType.append("Polygon")
+
+        topY += 40
+        leftY += 40
+        bottomY += 40
+        rightY += 40
+        
+    x = topLeftX + 10
+    y = topLeftY + 10
+    for a in range(5):
+        for b in range(5):
+            smallcircle = Circle(Point(x, y), 5)
+            smallcircle.draw(win)
+            smallcircle.setFill("White")
+            smallcircle.setOutline("White")
+            x += 20
+            graphics.append(smallcircle)
+            graphicsType.append("Circle")
+
+        y += 20
+        x = topLeftX + 10
+
+def patch2(win, topLeftX, topLeftY, squareColour, graphics, graphicsType):
+    
+    colour = "White"
+    outline = "White"
+    colourBlock(win, topLeftX, topLeftY, colour, outline, graphics, graphicsType)
+    
+    x = topLeftX
+    y = topLeftY+90
+    for TopleftX in range(0, 100, 10):
+        diagonalSquare = Rectangle(Point(x, y), Point(x+10, y+10))
+        diagonalSquare.draw(win)
+        diagonalSquare.setFill(squareColour)
+        diagonalSquare.setOutline(squareColour)
+        graphics.append(diagonalSquare)
+        graphicsType.append("Square")
+        x += 10
+        y -= 10
+
+def colourBlock(win, topLeftX, topLeftY, colour, outline, graphics, graphicsType):
+        block = Rectangle(Point(topLeftX, topLeftY), Point(topLeftX + 100, topLeftY + 100))
+        block.draw(win)
+        block.setFill(colour)
+        block.setOutline(outline)
+        if colour != "":
+            graphics.append(block)
+            graphicsType.append("Square")
+        return block
+
+def getColours():
+    availableColours = ["red", "green", "blue", "purple", "orange", "cyan"]
+    invalidColour1 = True
+    invalidColour2 = True
+    invalidColour3 = True
+    while invalidColour1:
+        colour1 = input("Enter the first colour: ")
+        for i in range(len(availableColours)):
+            if colour1 == availableColours[i]:
+                invalidColour1 = False
+                
+    while invalidColour2:
+        colour2 = input("Enter the second colour: ")
+        for i in range(len(availableColours)):
+            if colour2 == availableColours[i]:
+                invalidColour2 = False
+                
+    while invalidColour3:
+        colour3 = input("Enter the third colour: ")
+        for i in range(len(availableColours)):
+            if colour3 == availableColours[i]:
+                invalidColour3 = False
+                
+    return colour1, colour2, colour3
+    
+def createPatchWork(win, height, width):
+    colour1, colour2, colour3 = getColours()
+    graphics = [] #stores all of the graphics so they can be undrawn
+    graphicsType = [] #the graphic type i used for diamonds has different methods to the other graphics so i had to create an if statement depending on the graphic type
+    x = 0
+    for j in range(0, height, 100):
+        for i in range(0, width, 100):
+            
+            if i == 0 or j == (height - 100) / 2 or i == width - 100:
+                if x % 2 == 0:
+                    patch2(win, i, j, colour1, graphics, graphicsType)
+                else:
+                    colourBlock(win, i, j, colour1, colour1, graphics, graphicsType)        
+            elif j < (height - 100) / 2:
+                if x % 2 == 0:
+                    patch2(win, i, j, colour2, graphics, graphicsType)
+                else:
+                    Patch1(win, i, j, colour2, graphics, graphicsType)  
+            elif j > (height - 100) / 2:
+                if x % 2 == 0:
+                    patch2(win, i, j, colour3, graphics, graphicsType)
+                else:
+                    Patch1(win, i, j, colour3, graphics, graphicsType)  
+            x += 1   
+    challenge(win, width, height, graphics, graphicsType, colour1, colour2, colour3)
+
+def getWindowDimensions():
+    invalidsize = True
+    while invalidsize:
+        size = int(input("Enter the number of patches across: "))
+        if size == 5 or size == 7:
+            invalidsize = False
+    height = size * 100
+    width = size * 100
+    return height, width
+
+def selectPatch(win, width, height, keyPressed ,selectedX, selectedY, userSelection, graphics, graphicsType):
+    outline = "black"
+    colour = ""
+    
+    if keyPressed == "":
+        selection = win.getMouse()
+       
+        for i in range(0, height, 100):
+            for j in range(0, width, 100):
+                if selection.getX() > i and selection.getX() < i + 100 and selection.getY() > j and selection.getY() < j + 100:
+                    patchSelection = colourBlock(win, i, j, colour, outline, graphics, graphicsType)
+                    userSelection.append(patchSelection)
+                    selectedX = i
+                    selectedY = j
+    elif keyPressed == "Escape":
+        graphic = userSelection[0]
+        graphic.undraw()
+        userSelection.pop(0)
+    
+    else:
+        
+        if keyPressed == "Left":
+            selectedX -= 100
+        elif keyPressed == "Right":
+            selectedX += 100
+        elif keyPressed == "Down":
+            selectedY += 100
+        else:
+            selectedY -= 100
+    
+        graphic = userSelection[0]
+        graphic.undraw()
+        userSelection.pop(0)
+
+        patchSelection = colourBlock(win, selectedX, selectedY, colour, outline, graphics, graphicsType)
+        userSelection.append(patchSelection)
+    patchSelection = ""
+    return selectedX, selectedY
+
+def deletePatch(selectedX, selectedY, graphics, graphicsType):
+    for i in range(len(graphics)):
+        if graphicsType[i] == "Polygon" and graphics[i] != "":
+            graphicPoints = graphics[i].getPoints()
+            checkPoint = graphicPoints[1]
+            if selectedX < checkPoint.getX() < selectedX + 100 and selectedY < checkPoint.getY() < selectedY + 100:
+                graphics[i].undraw()
+                graphics[i] = ""
+        elif graphics[i] != "":
+            graphicCentre = graphics[i].getCenter()
+            if selectedX < graphicCentre.getX() < selectedX + 100 and selectedY < graphicCentre.getY() < selectedY + 100:
+                graphics[i].undraw()
+                graphics[i] = ""
+
+def checkEmpty(x, y, graphics, graphicsType):
+    empty = True
+    checkPoint = Point(0,0)
+    for i in range(len(graphics)):
+        if empty == False:
+            break
+        if graphicsType[i] == "Polygon" and graphics[i] != "":
+            graphicPoints = graphics[i].getPoints()
+            checkPoint = graphicPoints[1]
+        elif graphics[i] != "":
+            checkPoint = graphics[i].getCenter()
+        if x < checkPoint.getX() < x + 100 and y < checkPoint.getY() < y + 100:
+            empty = False
+        else:
+            empty = True
+        
+    return empty
+
+def challenge(win, width, height, graphics, graphicsType, colour1, colour2, colour3):
+    keyPressed = ""
+    selectedX = 0
+    selectedY = 0
+    UserSelection = []
+    selectedX, selectedY = selectPatch(win, width, height, keyPressed, selectedX, selectedY, UserSelection, graphics, graphicsType)
+    
+    while True:
+            keyPressed = win.getKey()
+
+            if keyPressed == "Left" or keyPressed == "Right" or keyPressed == "Up" or keyPressed == "Down":
+                selectedX, selectedY = selectPatch(win, width, height, keyPressed, selectedX, selectedY, UserSelection, graphics, graphicsType)
+            elif keyPressed == "d":
+                deletePatch(selectedX, selectedY, graphics, graphicsType)
+
+            elif keyPressed == "1" or keyPressed == "2" or keyPressed == "3":
+                empty = checkEmpty(selectedX, selectedY, graphics, graphicsType)
+                
+                if keyPressed == "1":
+                    newColour = colour1
+                elif keyPressed == "2": 
+                    newColour = colour2
+                else:
+                    newColour = colour3
+                if empty:
+                    colourBlock(win, selectedX, selectedY, newColour, newColour, graphics, graphicsType) 
+            elif keyPressed == "4" or keyPressed == "5" or keyPressed == "6":
+                empty = checkEmpty(selectedX, selectedY, graphics, graphicsType)
+                if keyPressed == "4":
+                   newColour = colour1 
+                elif keyPressed == "5":
+                    newColour = colour2
+                else:
+                    newColour = colour3
+                if empty:
+                    Patch1(win, selectedX, selectedY, newColour, graphics, graphicsType)  
+            elif keyPressed == "7" or keyPressed == "8" or keyPressed == "9":
+                empty = checkEmpty(selectedX, selectedY, graphics, graphicsType)
+                if keyPressed == "7":
+                    newColour = colour1
+                elif keyPressed == "8":
+                    newColour = colour2
+                else:
+                    newColour = colour3
+                if empty:
+                    patch2(win, selectedX, selectedY, newColour, graphics, graphicsType)
+            if keyPressed == "Escape":
+                selectPatch(win, width, height, keyPressed, selectedX, selectedY, UserSelection, graphics, graphicsType)
+                break
+
+
+
+def main():
+    height, width = getWindowDimensions()
+    win = GraphWin("Patchwork", height, width)
+    createPatchWork(win, height, width)
+
+
+
+
+main()
