@@ -1,0 +1,935 @@
+
+Public Class WelcomeMenu
+    Private isVerified As Boolean
+
+    Private Sub txtName_MouseClick(sender As Object, e As EventArgs) Handles txtName.MouseClick
+        txtName.Clear()
+    End Sub
+
+    Private Sub btnOK_Click(sender As Object, e As EventArgs) Handles btnOK.Click
+        Dim strName As String
+        Dim strX As String
+        Dim intCheck As Integer
+        Dim inc As Integer
+        Dim con As New OleDb.OleDbConnection
+        Dim dbProvider As String
+        Dim dbsource As String
+        Dim DocumentFolder As String
+        Dim thedatabase As String
+        Dim fulldatabasepath As String
+
+        Dim ds As New DataSet
+        Dim da As OleDb.OleDbDataAdapter
+        Dim sql As String
+
+        Dim dsNewRow As DataRow
+        Dim cb As New OleDb.OleDbCommandBuilder(da)
+
+        dbProvider = "PROVIDER=Microsoft.ACE.OLEDB.12.0;"
+        thedatabase = "\NEA Database.accdb"
+        DocumentFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+        fulldatabasepath = DocumentFolder & thedatabase
+
+        dbsource = "Data Source = " & fulldatabasepath
+
+        con.ConnectionString = dbProvider & dbsource
+
+        con.Open()
+        MsgBox("Open")
+
+        strName = txtName.Text
+
+        For i = 0 To strName.Length - 1
+            If (strName.Length) < 2 Or (strName.Length) > 20 Then
+                MsgBox("Hang on! The name you have entered is not the length we expected. Please keep your input between 2 and 20 letters")
+                Exit For
+            End If
+            strX = strName(i)
+            If Asc(strX) > 64 And Asc(strX) < 91 Or Asc(strX) > 96 And Asc(strX) < 123 Or Asc(strX) = 45 Then
+                intCheck = intCheck + 1
+
+            Else
+                MsgBox("There are some characters here that we don't recognise! Please only use letters and hyphens when typing out your name")
+                isVerified = False
+                VerificationTick.Visible = False
+                Exit For
+            End If
+        Next
+        If intCheck = strName.Length Then
+            UserNameTextBox.Text = strName
+            VerificationTick.Visible = True
+            isVerified = True
+            txtName.Enabled = False
+
+            dsNewRow = ds.Tables("tblStudent").NewRow()
+            dsNewRow.Item("UserName") = UserNameTextBox.Text
+            ds.Tables("AddressBook").Rows.Add(dsNewRow)
+            da.Update(ds, "tblstudent")
+        End If
+        con.Close()
+        MsgBox("Close")
+    End Sub
+
+    Private Sub btnInitialTest_Click(sender As Object, e As EventArgs) Handles btnInitialTest.Click
+
+        If isverified = True Then
+            Me.Hide()
+            InitailTestInformationScreen.Show()
+        Else
+            MsgBox("Please enter your name before continuing")
+        End If
+
+    End Sub
+
+    Private Sub btnTopicMenu_Click(sender As Object, e As EventArgs) Handles btnTopicMenu.Click
+        If isVerified = True Then
+            Me.Hide()
+            TopicMenu.Show()
+        Else
+            MsgBox("Please enter your name before continuing")
+        End If
+
+    End Sub
+    Private Sub UserNameTextBox_TextChanged_1(sender As Object, e As EventArgs) Handles UserNameTextBox.TextChanged
+        Try
+
+        Catch
+            MsgBox("You are dumb")
+        End Try
+    End Sub
+End Class
+
+Public Class TopicMenu
+    Private Sub btnFDPInformation_CheckedChanged(sender As Object, e As EventArgs) Handles btnFDPInformation.CheckedChanged
+        If btnFDPInformation.Checked = True Then
+            MsgBox("This topic includes:
+•	Simplifying fractions
+•	Comparing and ordering fractions, decimals, and percentages
+•	Adding and subtracting fractions with different denominators
+•	Multiplying proper fractions
+•	Conversion from fraction to decimal
+•	Identifying place value
+•	Multiplying decimals up to 2 decimal places
+•	Division where the answer is a decimal
+•	Rounding
+ ")
+            btnFDPInformation.Checked = False
+        End If
+    End Sub
+
+    Private Sub btnBack_Click(sender As Object, e As EventArgs) Handles btnBack.Click
+        Me.Hide()
+        WelcomeMenu.Show()
+    End Sub
+
+    Private Sub BTNFDP_click(sender As Object, e As EventArgs) Handles btnFDP.Click
+        Me.Hide()
+        ActivityMenu.Show()
+
+    End Sub
+End Class
+
+Public Class LessonSelectionScreen
+    Private Sub ConvertingBetweenFractionsAndDecimalsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ConvertingBetweenFractionsAndDecimalsToolStripMenuItem.Click
+        Me.Hide()
+        ConvertingBetweenFractionAndDecimals.Show()
+    End Sub
+End Class
+
+
+Public Class InitialTestQuestionScreen
+    Private Sub form1_load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        Me.HorizontalScroll.Maximum = 0
+        Me.AutoScroll = True
+    End Sub
+
+End Class
+
+
+Public Class InitailTestInformationScreen
+    Private Sub btnBack_Click(sender As Object, e As EventArgs) Handles btnBack.Click
+        Me.Hide()
+        WelcomeMenu.Show()
+    End Sub
+
+    Private Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
+        Me.Hide()
+        InitialTestQuestionScreen.Show()
+    End Sub
+End Class
+
+Imports System.Drawing
+
+Public Class GamePlay
+    Private timeEnd As DateTime
+    Private timeDiff As TimeSpan
+    Dim display As Graphics
+    Dim grid(7, 7) As Double
+    Dim showngrid(7, 7) As String
+    Dim intconversion As Integer
+    Dim FDP As Double
+    Dim answer As String
+    Dim i, j As Integer
+    Dim correctcount As Integer
+
+    Private Sub GamePlay_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        timeEnd = DateTime.Now
+
+        Dim minute As Double = 2
+        Dim second As Double = 30
+
+        timeEnd = timeEnd.AddMinutes(minute)
+        timeEnd = timeEnd.AddSeconds(second)
+
+        Timer1.Start()
+        randomnumbers()
+        txtRemaining.Enabled = False
+        GameInformation.Hide()
+
+
+    End Sub
+    Private Sub Timer1_Tick(ByVal sender As System.Object,
+ByVal e As System.EventArgs) Handles Timer1.Tick
+
+        timeDiff = timeEnd - DateTime.Now
+
+        Dim output As TimeSpan = New TimeSpan(timeDiff.Hours,
+           timeDiff.Minutes, timeDiff.Seconds)
+        txtRemaining.Text = Mid(output.ToString, 4, 7)
+        If (timeDiff.Ticks < 0) Then
+
+            Timer1.Stop()
+            Me.Hide()
+            GameResults.Show()
+        End If
+        Displaygrid()
+
+    End Sub
+    Public Sub Displaygrid()
+        Randomize()
+        display = Me.CreateGraphics
+        For x = 0 To 5
+            For y = 0 To 5
+                display.DrawRectangle(Pens.Black, New Rectangle((y * 55) + 120, (x * 55) + 40, 110, 110))
+            Next
+        Next
+
+    End Sub
+    Public Sub randomnumbers()
+        Randomize()
+
+        For x = 0 To 6
+            For y = 0 To 6
+                Dim random As Integer = CInt(Int((99 * Rnd()) + 1))
+                Dim FDP As Double = random / 100
+                grid(x, y) = FDP
+            Next
+        Next
+
+    End Sub
+    Private Sub Form1_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles Me.MouseDown
+
+        Dim ThePointX = e.X
+        Dim ThePointY = e.Y
+        conversion()
+
+        'MsgBox(ThePointX & "    " & ThePointY)
+        If ThePointX > 120 And ThePointX < 175 Then
+            column1(ThePointY)
+        End If
+        If ThePointX > 175 And ThePointX < 230 Then
+            column2(ThePointY)
+        End If
+        If ThePointX > 230 And ThePointX < 285 Then
+            column3(ThePointY)
+        End If
+        If ThePointX > 285 And ThePointX < 340 Then
+            column4(ThePointY)
+        End If
+        If ThePointX > 340 And ThePointX < 395 Then
+            column5(ThePointY)
+        End If
+        If ThePointX > 395 And ThePointX < 450 Then
+            column6(ThePointY)
+        End If
+        If ThePointX > 450 And ThePointX < 505 Then
+            column7(ThePointY)
+        End If
+
+    End Sub
+
+    Sub column1(thePointY As Integer)
+        i = 0
+        If thePointY > 40 And thePointY < 95 Then
+            lbl11.Show()
+            FDP = grid(0, 0)
+            j = 0
+            randomizegrid(i, j, FDP)
+            lbl11.Text = showngrid(i, j)
+        End If
+        If thePointY > 95 And thePointY < 150 Then
+            lbl21.Show()
+            FDP = grid(0, 1)
+            j = 1
+            randomizegrid(i, j, FDP)
+            lbl21.Text = showngrid(i, j)
+        End If
+        If thePointY > 150 And thePointY < 205 Then
+            lbl31.Show()
+            FDP = grid(0, 2)
+            j = 2
+            randomizegrid(i, j, FDP)
+            lbl31.Text = showngrid(i, j)
+        End If
+        If thePointY > 205 And thePointY < 260 Then
+            lbl41.Show()
+            FDP = grid(0, 3)
+            j = 3
+            randomizegrid(i, j, FDP)
+            lbl41.Text = showngrid(i, j)
+        End If
+        If thePointY > 260 And thePointY < 315 Then
+            lbl51.Show()
+            FDP = grid(0, 4)
+            j = 4
+            randomizegrid(i, j, FDP)
+            lbl51.Text = showngrid(i, j)
+        End If
+        If thePointY > 315 And thePointY < 370 Then
+            lbl61.Show()
+            FDP = grid(0, 5)
+            j = 5
+            randomizegrid(i, j, FDP)
+            lbl61.Text = showngrid(i, j)
+        End If
+        If thePointY > 370 And thePointY < 425 Then
+            lbl71.Show()
+            FDP = grid(0, 6)
+            j = 6
+            randomizegrid(i, j, FDP)
+            lbl71.Text = showngrid(i, j)
+        End If
+
+
+    End Sub
+    Sub column2(thepointy As Integer)
+
+        i = 1
+        If thepointy > 40 And thepointy < 95 Then
+            lbl12.Show()
+            lbl12.BackColor = Color.Transparent
+            FDP = grid(1, 0)
+            j = 0
+            randomizegrid(i, j, FDP)
+            lbl12.Text = showngrid(i, j)
+        End If
+        If thepointy > 95 And thepointy < 150 Then
+            lbl22.Show()
+            FDP = grid(1, 1)
+            j = 1
+            randomizegrid(i, j, FDP)
+            lbl22.Text = showngrid(i, j)
+        End If
+        If thepointy > 150 And thepointy < 205 Then
+            lbl32.Show()
+            FDP = grid(1, 2)
+            j = 2
+            randomizegrid(i, j, FDP)
+            lbl32.Text = showngrid(i, j)
+        End If
+        If thepointy > 205 And thepointy < 260 Then
+            lbl42.Show()
+            FDP = grid(1, 3)
+            j = 3
+            randomizegrid(i, j, FDP)
+            lbl42.Text = showngrid(i, j)
+        End If
+        If thepointy > 260 And thepointy < 315 Then
+            lbl52.Show()
+            FDP = grid(1, 4)
+            j = 4
+            randomizegrid(i, j, FDP)
+            lbl52.Text = showngrid(i, j)
+        End If
+        If thepointy > 315 And thepointy < 370 Then
+            lbl62.Show()
+            FDP = grid(1, 5)
+            j = 5
+            randomizegrid(i, j, FDP)
+            lbl62.Text = showngrid(i, j)
+        End If
+        If thepointy > 370 And thepointy < 425 Then
+            lbl72.Show()
+            FDP = grid(1, 6)
+            j = 6
+            randomizegrid(i, j, FDP)
+            lbl72.Text = showngrid(i, j)
+        End If
+
+
+    End Sub
+    Sub column3(thepointy As Integer)
+
+        i = 2
+        If thepointy > 40 And thepointy < 95 Then
+            lbl13.Show()
+            FDP = grid(2, 0)
+            j = 0
+            randomizegrid(i, j, FDP)
+            lbl13.Text = showngrid(i, j)
+        End If
+        If thepointy > 95 And thepointy < 150 Then
+            lbl23.Show()
+            FDP = grid(2, 1)
+            j = 1
+            randomizegrid(i, j, FDP)
+            lbl23.Text = showngrid(i, j)
+        End If
+        If thepointy > 150 And thepointy < 205 Then
+            lbl33.Show()
+            FDP = grid(2, 2)
+            j = 2
+            randomizegrid(i, j, FDP)
+            lbl33.Text = showngrid(i, j)
+        End If
+        If thepointy > 205 And thepointy < 260 Then
+            lbl43.Show()
+            FDP = grid(2, 3)
+            j = 3
+            randomizegrid(i, j, FDP)
+            lbl43.Text = showngrid(i, j)
+        End If
+        If thepointy > 260 And thepointy < 315 Then
+            lbl53.Show()
+            FDP = grid(2, 4)
+            j = 4
+            randomizegrid(i, j, FDP)
+            lbl53.Text = showngrid(i, j)
+        End If
+        If thepointy > 315 And thepointy < 370 Then
+            lbl63.Show()
+            FDP = grid(2, 5)
+            j = 5
+            randomizegrid(i, j, FDP)
+            lbl63.Text = showngrid(i, j)
+        End If
+        If thepointy > 370 And thepointy < 425 Then
+            lbl73.Show()
+            FDP = grid(2, 6)
+            j = 6
+            randomizegrid(i, j, FDP)
+            lbl73.Text = showngrid(i, j)
+        End If
+
+    End Sub
+    Sub column4(thepointy As Integer)
+
+        i = 3
+        If thepointy > 40 And thepointy < 95 Then
+            lbl14.Show()
+            FDP = grid(3, 0)
+            j = 0
+            randomizegrid(i, j, FDP)
+            lbl14.Text = showngrid(i, j)
+        End If
+        If thepointy > 95 And thepointy < 150 Then
+            lbl24.Show()
+            FDP = grid(3, 1)
+            j = 1
+            randomizegrid(i, j, FDP)
+            lbl24.Text = showngrid(i, j)
+        End If
+        If thepointy > 150 And thepointy < 205 Then
+            lbl34.Show()
+            FDP = grid(3, 2)
+            j = 2
+            randomizegrid(i, j, FDP)
+            lbl34.Text = showngrid(i, j)
+        End If
+        If thepointy > 205 And thepointy < 260 Then
+            lbl44.Show()
+            FDP = grid(3, 3)
+            j = 3
+            randomizegrid(i, j, FDP)
+            lbl44.Text = showngrid(i, j)
+        End If
+        If thepointy > 260 And thepointy < 315 Then
+            lbl54.Show()
+            FDP = grid(3, 4)
+            j = 4
+            randomizegrid(i, j, FDP)
+            lbl54.Text = showngrid(i, j)
+        End If
+        If thepointy > 315 And thepointy < 370 Then
+            lbl64.Show()
+            FDP = grid(3, 5)
+            j = 5
+            randomizegrid(i, j, FDP)
+            lbl64.Text = showngrid(i, j)
+        End If
+        If thepointy > 370 And thepointy < 425 Then
+            lbl74.Show()
+            FDP = grid(3, 6)
+            j = 6
+            randomizegrid(i, j, FDP)
+            lbl74.Text = showngrid(i, j)
+        End If
+
+
+    End Sub
+    Sub column5(thepointy As Integer)
+
+        i = 4
+        If thepointy > 40 And thepointy < 95 Then
+            lbl15.Show()
+            FDP = grid(4, 0)
+            j = 0
+            randomizegrid(i, j, FDP)
+            lbl15.Text = showngrid(i, j)
+        End If
+        If thepointy > 95 And thepointy < 150 Then
+            lbl25.Show()
+            FDP = grid(4, 1)
+            j = 1
+            randomizegrid(i, j, FDP)
+            lbl25.Text = showngrid(i, j)
+        End If
+        If thepointy > 150 And thepointy < 205 Then
+            lbl35.Show()
+            FDP = grid(4, 2)
+            j = 2
+            randomizegrid(i, j, FDP)
+            lbl35.Text = showngrid(i, j)
+        End If
+        If thepointy > 205 And thepointy < 260 Then
+            lbl45.Show()
+            FDP = grid(4, 3)
+            j = 3
+            randomizegrid(i, j, FDP)
+            lbl45.Text = showngrid(i, j)
+        End If
+        If thepointy > 260 And thepointy < 315 Then
+            lbl55.Show()
+            FDP = grid(4, 4)
+            j = 4
+            randomizegrid(i, j, FDP)
+            lbl55.Text = showngrid(i, j)
+        End If
+        If thepointy > 315 And thepointy < 370 Then
+            lbl65.Show()
+            FDP = grid(4, 5)
+            j = 5
+            randomizegrid(i, j, FDP)
+            lbl65.Text = showngrid(i, j)
+        End If
+        If thepointy > 370 And thepointy < 425 Then
+            lbl75.Show()
+            FDP = grid(4, 6)
+            j = 6
+            randomizegrid(i, j, FDP)
+            lbl75.Text = showngrid(i, j)
+        End If
+
+
+    End Sub
+    Sub column6(thepointy As Integer)
+
+        If thepointy > 40 And thepointy < 95 Then
+            lbl16.Show()
+            FDP = grid(5, 0)
+            randomizegrid(i, j, FDP)
+            lbl16.Text = showngrid(i, j)
+        End If
+        If thepointy > 95 And thepointy < 150 Then
+            lbl26.Show()
+            FDP = grid(5, 1)
+            randomizegrid(i, j, FDP)
+            lbl26.Text = showngrid(i, j)
+        End If
+        If thepointy > 150 And thepointy < 205 Then
+            lbl36.Show()
+            FDP = grid(5, 2)
+            randomizegrid(i, j, FDP)
+            lbl36.Text = showngrid(i, j)
+        End If
+        If thepointy > 205 And thepointy < 260 Then
+            lbl46.Show()
+            FDP = grid(5, 3)
+            randomizegrid(i, j, FDP)
+            lbl46.Text = showngrid(i, j)
+        End If
+        If thepointy > 260 And thepointy < 315 Then
+            lbl56.Show()
+            FDP = grid(5, 4)
+            randomizegrid(i, j, FDP)
+            lbl56.Text = showngrid(i, j)
+        End If
+        If thepointy > 315 And thepointy < 370 Then
+            lbl66.Show()
+            FDP = grid(5, 5)
+            randomizegrid(i, j, FDP)
+            lbl66.Text = showngrid(i, j)
+        End If
+        If thepointy > 370 And thepointy < 425 Then
+            lbl76.Show()
+            FDP = grid(5, 6)
+            randomizegrid(i, j, FDP)
+            lbl76.Text = showngrid(i, j)
+        End If
+
+    End Sub
+    Sub column7(thepointy As Integer)
+
+        i = 6
+        If thepointy > 40 And thepointy < 95 Then
+            lbl17.Show()
+            FDP = grid(6, 0)
+            j = 0
+            randomizegrid(i, j, FDP)
+            lbl17.Text = showngrid(i, j)
+
+        End If
+        If thepointy > 95 And thepointy < 150 Then
+            lbl27.Show()
+            FDP = grid(6, 1)
+            j = 1
+            randomizegrid(i, j, FDP)
+
+            lbl27.Text = showngrid(i, j)
+        End If
+        If thepointy > 150 And thepointy < 205 Then
+            lbl37.Show()
+            FDP = grid(6, 2)
+            j = 2
+            randomizegrid(i, j, FDP)
+            lbl37.Text = showngrid(i, j)
+        End If
+        If thepointy > 205 And thepointy < 260 Then
+            lbl47.Show()
+            FDP = grid(6, 3)
+            j = 3
+            randomizegrid(i, j, FDP)
+            lbl47.Text = showngrid(i, j)
+        End If
+        If thepointy > 260 And thepointy < 315 Then
+            lbl57.Show()
+            FDP = grid(6, 4)
+            j = 4
+            randomizegrid(i, j, FDP)
+            lbl57.Text = showngrid(i, j)
+        End If
+        If thepointy > 315 And thepointy < 370 Then
+            lbl67.Show()
+            FDP = grid(6, 5)
+            j = 5
+            randomizegrid(i, j, FDP)
+            lbl67.Text = showngrid(i, j)
+        End If
+        If thepointy > 370 And thepointy < 425 Then
+            lbl77.Show()
+            FDP = grid(6, 6)
+            j = 6
+            randomizegrid(i, j, FDP)
+            lbl77.Text = showngrid(i, j)
+        End If
+
+    End Sub
+
+    Sub conversion()
+        intconversion = CInt(Int((3 * Rnd()) + 1))
+        If intconversion = 1 Then
+            lblConversion.Text = "Fraction"
+        ElseIf intconversion = 2 Then
+            lblConversion.Text = "Decimal"
+        ElseIf intconversion = 3 Then
+            lblConversion.Text = "Percentage"
+        End If
+    End Sub
+    Function randomizegrid(i As Integer, j As Integer, FDP As Double)
+        Dim intdisplay As Integer
+        Dim strFDP As String
+        intdisplay = CInt(Int((3 * Rnd()) + 1))
+        'MsgBox(intdisplay)
+        If intdisplay = 1 Then
+            strFDP = converttodecimal(FDP)
+            showngrid(i, j) = strFDP
+        ElseIf intdisplay = 2 Then
+            strFDP = converttopercentage(FDP)
+            showngrid(i, j) = strFDP
+        ElseIf intdisplay = 3 Then
+            strFDP = converttofraction(FDP)
+            showngrid(i, j) = strFDP
+        End If
+        Return showngrid(i, j)
+    End Function
+    Function converttodecimal(FDP As Double)
+        answer = FDP.ToString
+        Return answer
+    End Function
+    Function converttopercentage(FDP As Double)
+        Dim percentage As Integer
+        percentage = FDP * 100
+        answer = percentage.ToString + "%"
+        Return answer
+    End Function
+    Function converttofraction(FDP As Double)
+        Dim numerator, denominator As Integer
+        Dim testnumerator, testdenominator As Double
+        Dim T As Integer
+
+        numerator = FDP
+        denominator = 1
+        Dim n As Integer = FDP.ToString().Substring(FDP.ToString().IndexOf(".")).Length - 1
+        numerator = FDP * 10 ^ n
+        denominator = 1 * 10 ^ n
+
+        testnumerator = numerator
+        testdenominator = denominator
+        Do While testdenominator <> 0
+            T = testdenominator
+            testdenominator = testnumerator Mod testdenominator
+            testnumerator = T
+        Loop
+        numerator = numerator / testnumerator
+        denominator = denominator / testnumerator
+        answer = numerator.ToString + "/" + denominator.ToString
+        Return answer
+    End Function
+
+    Private Sub btnOk_Click(sender As Object, e As EventArgs) Handles btnOk.Click
+        Dim useranswer As String
+        useranswer = txtUserAnswer.Text
+        answercomparison(useranswer, FDP, intconversion)
+    End Sub
+
+    Sub answercomparison(useranswer As String, FDP As Double, intconversion As Integer)
+
+        MsgBox(FDP)
+        If intconversion = 1 Then
+            answer = converttofraction(FDP)
+        End If
+        If intconversion = 2 Then
+            answer = converttodecimal(FDP)
+        End If
+        If intconversion = 3 Then
+            answer = converttopercentage(FDP)
+        End If
+        MsgBox(answer)
+        If useranswer = answer Then
+            correctcount = correctcount + 1
+        End If
+        MsgBox(correctcount)
+    End Sub
+End Class
+
+Public Class GameInformation
+    Private timeEnd As DateTime
+    Private timeDiff As TimeSpan
+    Private Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
+        Me.Hide()
+        GamePlay.Show()
+
+    End Sub
+
+    Private Sub btnBack_Click(sender As Object, e As EventArgs) Handles btnBack.Click
+        Me.Hide()
+        ActivityMenu.Show()
+    End Sub
+End Class
+Public Class ConvertingBetweenFractionAndDecimals
+    Dim vertical, horizontal As Graphics
+    Private Sub convertingbetweenfractionanddecimals_load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        Me.HorizontalScroll.Maximum = 0
+        AutoScroll = True
+        Button1.Hide()
+    End Sub
+    Private Sub btnTry_Click(sender As Object, e As EventArgs)
+        Dim numerator As Integer
+        Dim denominator As Integer
+        Dim correctcount As Integer
+        Dim denominatorcorrect, numeratorcorrect As Integer
+
+        Try
+            numerator = txtNumerator.Text
+            denominator = txtDenominator.Text
+            If numerator = 7 Then
+
+                correctcount = correctcount + 1
+                txtNumerator.Enabled = False
+                numeratorcorrect = True
+            End If
+            If denominator = 8 Then
+
+                correctcount = correctcount + 1
+                txtDenominator.Enabled = False
+                denominatorcorrect = True
+            End If
+            If correctcount = 2 Then
+                DrawStep2()
+                correcttick1.Show()
+                correcttick2.Show()
+            ElseIf denominatorcorrect = False Then
+                txtDenominator.Clear()
+            End If
+            If numeratorcorrect = False Then
+                txtNumerator.Clear()
+            End If
+        Catch
+            MsgBox("Your answer contains characters that we don't recognise! Please only use numbers.")
+            txtDenominator.Clear()
+            txtNumerator.Clear()
+        End Try
+
+
+    End Sub
+
+    Private Sub btnSkip_Click(sender As Object, e As EventArgs)
+        txtDenominator.Text = 8
+        txtNumerator.Text = 7
+        txtNumerator.Enabled = False
+        txtDenominator.Enabled = False
+        btnTry.Enabled = False
+        btnSkip.Enabled = False
+        DrawStep2()
+    End Sub
+
+    Private Sub ConvertingBetweenFractionAndDecimals_paint(sender As Object, e As EventArgs) Handles MyBase.Paint
+        Dim bmp As Bitmap = New Bitmap(200, 200)
+        Dim g As Graphics = Graphics.FromImage(bmp)
+
+
+        g.DrawLine(Pens.Black, 60, 25, 60, 65)
+        g.DrawLine(Pens.Black, 60, 25, 140, 25)
+        picStep1.Image = bmp
+        picStep1.Refresh()
+    End Sub
+
+    Private Sub Form1_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles Me.MouseDown
+        Dim ThePointX = e.X
+        Dim ThePointY = e.Y
+
+        MsgBox(ThePointX & "    " & ThePointY)
+    End Sub
+
+
+    Sub DrawStep2()
+        Dim bmp As Bitmap = New Bitmap(200, 200)
+        Dim g As Graphics = Graphics.FromImage(bmp)
+
+        picStep2.Show()
+        g.DrawLine(Pens.Black, 60, 25, 60, 65)
+        g.DrawLine(Pens.Black, 60, 25, 140, 25)
+        picStep2.Image = bmp
+        picStep2.Refresh()
+        Panel3.Show()
+        ' txtAnswerbox1.Show()
+        'lbl8.Show()
+        'lbl7.Show()
+        'lblStep2.Show()
+        'btnTry2.Show()
+        'btnSkip2.Show()
+
+    End Sub
+
+    Private Sub btnTry2_Click(sender As Object, e As EventArgs)
+        Dim userentry As Integer
+        Try
+            userentry = txtAnswerbox1.Text
+            If userentry = 0 Then
+                drawstep3()
+                txtAnswerbox1.Enabled = False
+                Correcttick3.Show()
+            Else
+                MsgBox("Not quite - try again!")
+                txtAnswerbox1.Clear()
+            End If
+        Catch
+            MsgBox("Your answer contains characters that we don't recognise! Please only use numbers.")
+            txtAnswerbox1.Clear()
+        End Try
+
+    End Sub
+
+    Private Sub btnSkip2_Click(sender As Object, e As EventArgs)
+        txtAnswerbox1.Text = 0
+        txtAnswerbox1.Enabled = False
+        drawstep3()
+    End Sub
+
+    Sub drawstep3()
+        Dim bmp As Bitmap = New Bitmap(200, 200)
+        Dim g As Graphics = Graphics.FromImage(bmp)
+
+        picStep3.Show()
+        g.DrawLine(Pens.Black, 60, 25, 60, 65)
+        g.DrawLine(Pens.Black, 60, 25, 145, 25)
+        picStep3.Image = bmp
+        picStep3.Refresh()
+
+        lbl72.Show()
+        lbl82.Show()
+        txtRemainder.Show()
+        txt0.Show()
+        lblDecimalPoint.Show()
+        lblStep3.Show()
+        lbl0.Show()
+        btnTry3.Show()
+        btnSkip3.Show()
+    End Sub
+    Private Sub btnTry3_Click(sender As Object, e As EventArgs)
+        Dim useranswer As Char
+        'had to make it into a string to find the length otherwise '00' would be a valid input
+        useranswer = txt0.Text
+        If txt0.Text = "0" Or txt0.Text.Length > 1 Then
+            MsgBox(txt0.Text)
+        End If
+    End Sub
+
+
+
+    Private Sub btnSkip3_Click(sender As Object, e As EventArgs)
+        txtRemainder.Text = 7
+        txt0.Text = 0
+        txt0.Enabled = False
+        txtRemainder.Enabled = False
+    End Sub
+End Class
+
+Public Class ActivityMenu
+    Private Sub btnLessonInformation_CheckedChanged(sender As Object, e As EventArgs) Handles btnLessonInformation.CheckedChanged
+        If btnLessonInformation.Checked = True Then
+            MsgBox(" ")
+            btnLessonInformation.Checked = False
+        End If
+    End Sub
+
+    Private Sub btnPractise_CheckedChanged(sender As Object, e As EventArgs) Handles btnPractise.CheckedChanged
+        If btnPractise.Checked = True Then
+            MsgBox(" ")
+            btnPractise.Checked = False
+        End If
+    End Sub
+
+    Private Sub btnGame_CheckedChanged(sender As Object, e As EventArgs) Handles btnGame.CheckedChanged
+        If btnGame.Checked = True Then
+            MsgBox(" ")
+            btnGame.Checked = False
+        End If
+    End Sub
+
+    Private Sub btnLesson_Click(sender As Object, e As EventArgs) Handles btnLesson.Click
+        Me.Hide()
+        LessonSelectionScreen.Show()
+
+    End Sub
+
+    Private Sub btnFDP_Practise_Click(sender As Object, e As EventArgs) Handles btnFDP_Practise.Click
+
+    End Sub
+
+    Private Sub btnFDP_Game_Click(sender As Object, e As EventArgs) Handles btnFDP_Game.Click
+        Me.Hide()
+        GameInformation.Show()
+    End Sub
+End Class
